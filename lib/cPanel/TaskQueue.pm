@@ -109,7 +109,7 @@ sub _valid_serializer {
 
 sub _get_serializer {
     unless ( defined $the_serializer ) {
-        eval 'use cPanel::TQSerializer::Storable;';    ## no crititc (ProhibitStringyEval)
+        eval 'use cPanel::TQSerializer::Storable;';    ## no critic(ProhibitStringyEval)
         cPanel::StateFile->_throw(@_) if $@;
         $the_serializer = 'cPanel::TQSerializer::Storable';
     }

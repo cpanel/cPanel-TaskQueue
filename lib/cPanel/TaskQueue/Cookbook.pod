@@ -1,6 +1,6 @@
 =head1 NAME
 
-cPanel::TaskQueue::Recipes - some tasty uses of the cPanel::TaskQueue modules.
+cPanel::TaskQueue::Cookbook - some tasty uses of the cPanel::TaskQueue modules.
 
 =head1 DESCRIPTION
 
@@ -392,7 +392,7 @@ Sometimes a command may invalidate the need for other commands in the queue. For
 example, a command to restart a server is not very useful if a command to shut
 down the server is in the queue behind it. To provide the ability to remove
 commands that have previously been queued in favor of a new command, you can
-override the C<overrides> method of C<cPanell:TaskQueue::Processor>.
+override the C<overrides> method of C<cPanel::TaskQueue::Processor>.
 
 For example, let's say we have a special feature in the I<notify> command to
 send a message to I<ALL>. This should obviously override a notification to any
@@ -715,7 +715,7 @@ This loop is somewhat more complicated due to the need to service the
 C<Scheduler> in a timely fashion. Any time we don't have something to process,
 we want to sleep the lesser of the default wait time and the time until the
 next scheduled event. We also want to schedule C<Task>s as soon as they are
-ready. It's also important to check the C<Scheduler> on every pass through
+ready. It is also important to check the C<Scheduler> on every pass through
 the loop, otherwise a series of long-running C<Task>s could prevent us from
 scheduling C<Task>s that are now ready.
 

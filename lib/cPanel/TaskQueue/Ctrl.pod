@@ -3,7 +3,6 @@
 
 cPanel::TaskQueue::Ctrl - A text-based interface for controlling a TaskQueue
 
-
 =head1 VERSION
 
 This document describes cPanel::TaskQueue::Ctrl version 0.606
@@ -199,7 +198,7 @@ serialization method on subsequent attempts to create the queue and scheduler.
 
 =head2 display_queue_info( $ctrl, $fh, $queue, $sched )
 
-Write general infomration about the TaskQueue and Scheduler to the supplied
+Write general information about the TaskQueue and Scheduler to the supplied
 filehandle. The information includes the serialization type, and the full names
 of the state files for C<$queue> and C<$sched> objects.
 

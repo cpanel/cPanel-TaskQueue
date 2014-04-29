@@ -115,7 +115,7 @@ module provides.
 
 C<load_all_plugins> was called without a I<directories> parameter.
 
-=item C<< No namepsace list supplied. >>
+=item C<< No namespace list supplied. >>
 
 C<load_all_plugins> was called without a I<namespaces> parameter.
 
@@ -174,7 +174,7 @@ variables.
 
 =head1 DEPENDENCIES
 
-cPanel::TaskQeue
+cPanel::TaskQueue
 
 =head1 SEE ALSO
 
