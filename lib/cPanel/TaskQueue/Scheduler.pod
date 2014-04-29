@@ -154,7 +154,7 @@ is returned.
 Does the specified I<uuid> reference a task to be scheduled?
 
 Because of the nature of a task scheduler, the particular I<uuid> tested may
-be scheduled for processsing immediately after the test. Therefore, a true answer
+be scheduled for processing immediately after the test. Therefore, a true answer
 is not as useful as it might seem. A false answer does tell us that the item is
 no longer waiting.
 
@@ -164,7 +164,7 @@ Returns the time (in epoch seconds) when the Task referenced by I<uuid> is
 scheduled to be run or C<undef> if I<uuid> does not reference a valid task.
 
 Because of the nature of a task scheduler, the particular I<uuid> tested may
-be scheduled for processsing immediately after the test.
+be scheduled for processing immediately after the test.
 
 =item $s->how_many_scheduled()
 
@@ -183,7 +183,7 @@ C<undef> if there are no tasks to process.
 
 =item $s->snapshot_task_schedule()
 
-Returns an array reference containing a series of hashes continaing the I<time>
+Returns an array reference containing a series of hashes containing the I<time>
 a task is scheduled to run and a copy of the I<task> to run at that time. The
 first item in the array is guaranteed to be the next task to run. The order of
 the rest of the list is not guaranteed.
@@ -347,7 +347,7 @@ Some other file has already set the policies.
 
 =item C<< Unrecognized policy '%s' >>
 
-The only policy supported by C<Cpane::TaskQueue::Scheduler> is I<-logger>.
+The only policy supported by C<cPanel::TaskQueue::Scheduler> is I<-logger>.
 
 =back
 

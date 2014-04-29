@@ -19,7 +19,7 @@ This document describes cPanel::TaskQueue version 0.606
     # Processing loop
     while (1) {
         # if work, process, else sleep
-        if ( $queue-has_work_to_do() ) {
+        if ( $queue->has_work_to_do() ) {
             eval { $queue->process_next_task() };
             if ( $@ ) {
                 Carp::carp( $@ );
@@ -121,7 +121,7 @@ The command type must have been registered with the TaskQueue module.
 
 =item Command must not duplicate a command already in the queue.
 
-Each command type can have it's own definition of duplicate. It can depend on
+Each command type can have its own definition of duplicate. It can depend on
 one or more of the arguments or not.
 
 =back
@@ -217,7 +217,7 @@ returned.
 Does the specified I<uuid> reference a task in the queue?
 
 Because of the nature of a task queue, the particular I<uuid> tested may be scheduled
-for processsing immediately after the test. Therefore, a true answer is not as useful as
+for processing immediately after the test. Therefore, a true answer is not as useful as
 it might seem. A false answer does tell us that the item is no longer waiting.
 
 =item $q->find_task( $uuid )
@@ -267,7 +267,7 @@ empty.
 Does the specified I<uuid> reference a task currently being processed?
 
 Because of the nature of a task queue, the particular I<uuid> tested may be scheduled
-for processsing or finish processing immediately after the test. I'm not sure if this
+for processing or finish processing immediately after the test. I'm not sure if this
 test is actually useful for anything.
 
 =item $q->is_task_deferred( $uuid )
@@ -275,7 +275,7 @@ test is actually useful for anything.
 Does the specified I<uuid> reference a task that is currently deferred?
 
 Because of the nature of a task queue, the particular I<uuid> tested may be scheduled
-for processsing or finish processing immediately after the test. I'm not sure if this
+for processing or finish processing immediately after the test. I'm not sure if this
 test is actually useful for anything.
 
 =item $q->how_many_deferred()
@@ -308,7 +308,7 @@ of the state of the queue.
 
 Prevent any more tasks from moving from the waiting state into the processing
 state. This does not stop any tasks from processing once they begin processing.
-If the queue is paused, no more tasks will move from the waitig state to the
+If the queue is paused, no more tasks will move from the waiting state to the
 processing state.
 
 =item $q->resume_processing()

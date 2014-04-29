@@ -1,11 +1,11 @@
 
 =head1  NAME
 
-    cPanel::TaskQueue::ChildProcessor - Processes an individual task from the cPanel::TaskQueue in a child process.
+cPanel::TaskQueue::ChildProcessor - Processes an individual task from the cPanel::TaskQueue in a child process.
 
 =head1 VERSION
 
-    This document describes cPanel::TaskQueue::ChildProcessor version 0.606.
+This document describes cPanel::TaskQueue::ChildProcessor version 0.606.
 
 =head1 SYNOPSIS
 
@@ -37,12 +37,12 @@
 
 =head1  DESCRIPTION
 
-    This module provides an abstraction for commands to be executed by a child
-    process launched from the TaskQueue. It overrides the C<process_task> method
-    to fork a child process and return the appropriate information back to
-    C<cPanel::TaskQueue>.
+This module provides an abstraction for commands to be executed by a child
+process launched from the TaskQueue. It overrides the C<process_task> method
+to fork a child process and return the appropriate information back to
+C<cPanel::TaskQueue>.
 
-    In addition, the class provides automatic timeout support for the child process.
+In addition, the class provides automatic timeout support for the child process.
 
 =head1 PUBLIC METHODS
 

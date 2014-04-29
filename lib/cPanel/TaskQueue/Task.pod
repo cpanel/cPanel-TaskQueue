@@ -40,7 +40,7 @@ contain spaces, surround it with quotes.
 
 =item I<nsid>
 
-A namespace string used to generate a unique identifer for the Task. Must be a
+A namespace string used to generate a unique identifier for the Task. Must be a
 non-empty string containing no ':' characters. Defaults to an internal UUID.
 
 =item I<id>
@@ -85,10 +85,10 @@ Create a deep copy of the C<cPanel::TaskQueue::Task> object.
 
 =item $q->mutate( $hashref )
 
-Clone the C<cPanel::TaskQueue::Task> object and modify some of its properites.
+Clone the C<cPanel::TaskQueue::Task> object and modify some of its properties.
 
 The C<mutate> method supports hashref argument that contains small number of
-named parameters for changing the assocatiated properties.
+named parameters for changing the associated properties.
 
 =over 4
 
@@ -208,7 +208,7 @@ The C<new> method was called with no hash ref to initialize the object state.
 =item C<< Args parameter must be a hash ref. >>
 
 Incorrect parameter type for C<new> method. Probably called the method with either positional arguments
-or with named arguments outside an anonynmous hash.
+or with named arguments outside an anonymous hash.
 
 =item C<< Missing command string. >>
 
