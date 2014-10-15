@@ -5,7 +5,7 @@ cPanel::TaskQueue::ChildProcessor - Processes an individual task from the cPanel
 
 =head1 VERSION
 
-This document describes cPanel::TaskQueue::ChildProcessor version 0.606.
+This document describes cPanel::TaskQueue::ChildProcessor version 0.700.
 
 =head1 SYNOPSIS
 

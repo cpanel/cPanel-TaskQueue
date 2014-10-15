@@ -5,7 +5,7 @@ cPanel::TaskQueue::Task - Objects representing the task concept.
 
 =head1 VERSION
 
-This document describes cPanel::TaskQueue::Task version 0.606.
+This document describes cPanel::TaskQueue::Task version 0.700.
 
 =head1 SYNOPSIS
 
