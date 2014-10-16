@@ -47,7 +47,7 @@ my %validate = (
     'sname'  => sub { return defined $_[0] && length $_[0]; },
     'logger' => sub { return 1; },
     'out'    => sub { return 1; },
-    'serial' => sub { return exists $format{ lc $_[0] }; },
+    'serial' => sub { return !defined $_[0] || exists $format{ lc $_[0] }; },
 );
 
 my %commands = (
@@ -135,6 +135,19 @@ my %commands = (
     "scheduled" argument, any scheduled items that have reached their activation time will be
     queued. Otherwise, both actions will be performed. Use the "verbose" flag for more output.'
     },
+    flush_scheduled_tasks => {
+        code     => \&flush_scheduled_tasks,
+        synopsis => 'flush_scheduled_tasks',
+        help     => '    Flush scheduled tasks to the waiting queue where they can be processed.
+    The scheduled tasks are flushed regardless of whether the scheduled time has arrived or not.'
+    },
+    delete_unprocessed_tasks => {
+        code     => \&delete_unprocessed_tasks,
+        synopsis => 'delete_unprocessed_tasks [scheduled|waiting]',
+        help     => '    Delete tasks which are not yet being processed. If called with the
+    "waiting" argument, only waiting/deferred tasks are deleted. If called with the "scheduled"
+    argument, only scheduled tasks are deleted. Otherwise all non-processed tasks are deleted.'
+    }
 );
 
 sub new {
@@ -164,6 +177,7 @@ sub run {
     die "Unrecognized command '$cmd' to run.\n" unless exists $commands{$cmd};
 
     $commands{$cmd}->{code}->( $self, $self->{out}, $self->_get_queue(), $self->_get_scheduler(), @args );
+    return;
 }
 
 sub synopsis {
@@ -448,7 +462,7 @@ sub convert_state_files {
         return;
     }
     my $new_serial = $format{$fmt};
-    eval "use $new_serial;";
+    eval "use $new_serial;";  ## no critic(ProhibitStringyEval)
     die "Unable to load serializer module '$new_serial': $@" if $@;
     _convert_a_state_file( $queue, $new_serial );
     _convert_a_state_file( $sched, $new_serial );
@@ -472,12 +486,16 @@ sub _convert_a_state_file {
         unlink "$curr_state_file.orig";
         rename $curr_state_file, "$curr_state_file.orig";
     }
+    return;
 }
 
 sub display_queue_info {
     my ( $ctrl, $fh, $queue, $sched, @args ) = @_;
     print $fh "Current TaskQueue Information\n";
-    print $fh "Serializer:     $ctrl->{serial} ($format{lc $ctrl->{serial}})\n";
+    my $description = $ctrl->{serial}
+                    ? "$ctrl->{serial} (".$format{lc $ctrl->{serial}}.")"
+                    : 'default';
+    print $fh "Serializer:     $description\n";
     print $fh "TaskQueue file: ", $queue->_state_file(), "\n";
     print $fh "Scheduler file: ", $sched->_state_file(), "\n";
     return;
@@ -512,6 +530,38 @@ sub process_one_step {
     } or do {
         print $fh "Exception detected: $@";
     };
+    return;
+}
+
+sub flush_scheduled_tasks {
+    my ( $ctrl, $fh, $queue, $sched, @args ) = @_;
+    my @ids = $sched->flush_all_tasks();
+    if(@ids) {
+        print $fh scalar(@ids), " tasks flushed\n";
+    }
+    else {
+        print $fh "No tasks flushed\n";
+    }
+    return;
+}
+
+sub delete_unprocessed_tasks {
+    my ( $ctrl, $fh, $queue, $sched, @args ) = @_;
+    @args = qw/waiting scheduled/ unless @args;
+    my $count = 0;
+    if( _any_is( 'scheduled', @args ) ) {
+        $count += $sched->delete_all_tasks();
+    }
+    if( _any_is( 'waiting', @args ) ) {
+        $count += $queue->delete_all_unprocessed_tasks();
+    }
+    if($count) {
+        print $fh "$count tasks deleted\n";
+    }
+    else {
+        print $fh "No tasks to delete\n";
+    }
+    return;
 }
 
 sub _print_task {
@@ -519,6 +569,7 @@ sub _print_task {
     print $fh '[', $task->uuid, ']: ', $task->full_command, "\n";
     print $fh "\tQueued:  ", scalar( localtime $task->timestamp ), "\n";
     print $fh "\tStarted: ", scalar( localtime $task->started ), "\n" if defined $task->started;
+    return;
 }
 
 sub _verbosely_print_task {
@@ -529,6 +580,7 @@ sub _verbosely_print_task {
     print $fh "\tChild Timeout: ", $task->child_timeout, " secs\n";
     print $fh "\tPID: ", ( $task->pid || 'None' ), "\n";
     print $fh "\tRemaining Retries: ", $task->retries_remaining, "\n";
+    return;
 }
 
 1;

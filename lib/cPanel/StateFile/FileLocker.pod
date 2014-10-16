@@ -6,7 +6,7 @@ cPanel::StateFile::FileLocker - Lock and unlock files using C<flock>.
 
 =head1 VERSION
 
-This document describes cPanel::StateFile::FileLocker version 0.606
+This document describes cPanel::StateFile::FileLocker version 0.700
 
 
 =head1 SYNOPSIS

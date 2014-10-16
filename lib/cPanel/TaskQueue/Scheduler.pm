@@ -400,7 +400,45 @@ my $tasksched_uuid = 'TaskQueue-Scheduler';
         };
         my $ex = $@;
         $guard->update_file() if $count && $guard;
-        die $ex if $ex;
+        $self->throw( $ex ) if $ex;
+
+        return $count;
+    }
+
+    sub flush_all_tasks {
+        my ( $self, $queue ) = @_;
+
+        unless ( defined $queue and eval { $queue->can('queue_task') } ) {
+            $self->throw('No valid queue supplied.');
+        }
+
+        my @ids;
+        my $guard = $self->{disk_state}->synch();
+        eval {
+            while ( @{ $self->{time_queue} } ) {
+                my $item = $self->{time_queue}->[0];
+
+                # Should be safe from deadlock unless queue calls back to me.
+                my $id = $queue->queue_task( $item->{task} );
+                push @ids, $id if $id;
+
+                # Only remove from the schedule when the queue has processed it.
+                shift @{ $self->{time_queue} };
+            }
+        };
+        my $ex = $@;
+        $guard->update_file() if @ids;
+        $self->throw( $ex ) if $ex;
+
+        return @ids;
+    }
+
+    sub delete_all_tasks {
+        my ($self) = @_;
+        my $guard = $self->{disk_state}->synch();
+        my $count = @{ $self->{time_queue} };
+        $self->{time_queue} = [];
+        $guard->update_file() if $count;
 
         return $count;
     }

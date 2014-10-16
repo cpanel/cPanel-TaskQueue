@@ -5,7 +5,7 @@ cPanel::TaskQueue::Scheduler - Priority queue of Tasks to Queue at some time in 
 
 =head1 VERSION
 
-This document describes cPanel::TaskQueue::Scheduler version 0.606.
+This document describes cPanel::TaskQueue::Scheduler version 0.700.
 
 =head1 SYNOPSIS
 
@@ -209,6 +209,27 @@ it's I<uuid>, so don't expect the C<uuid> from the scheduler to have any relatio
 to the C<uuid> of the same task in the C<TaskQueue>.
 
 Returns the number of tasks processed, C<0> if there were no tasks to process.
+
+=item $s->flush_all_tasks( $queue )
+
+This method takes all Tasks, whether or not they have reached their schedule
+time and passes the to the C<queue_task> method of the supplied I<queue>
+object. No object is removed from the scheduler unless C<queue_task> runs
+without an exception.
+
+Returns a list of the C<uuid>s of all tasks that are scheduled.
+
+I<Warning>: This is almost certainly a bad idea. But, there are a few cases where
+the scheduling may need to be overridden.
+
+=item $s->delete_all_tasks( $queue )
+
+This method removes all Tasks from the scheduler without any processing.
+
+Returns a count of the number of tasks that were removed.
+
+I<Warning>: This is almost certainly a bad idea. But, there are a few cases where
+the scheduled tasks may need to be discarded.
 
 =back
 

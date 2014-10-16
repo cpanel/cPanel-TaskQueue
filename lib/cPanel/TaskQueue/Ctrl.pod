@@ -5,7 +5,7 @@ cPanel::TaskQueue::Ctrl - A text-based interface for controlling a TaskQueue
 
 =head1 VERSION
 
-This document describes cPanel::TaskQueue::Ctrl version 0.606
+This document describes cPanel::TaskQueue::Ctrl version 0.700
 
 
 =head1 SYNOPSIS
@@ -31,7 +31,7 @@ corrupt the queue making further execution of tasks impossible. This module
 provides the tools needed to allow safe manipulation of a queue and associated
 scheduler.
 
-As a general rule, most users will find the C<taskqueuectrl> script much more
+As a general rule, most users will find the C<taskqueuectl> script much more
 useful than using this module directly. However, the module is provided to
 allow new tools to be built more easily.
 
@@ -229,6 +229,33 @@ the active queue.
 
 If neither C<scheduled> or C<waiting> are supplied, the routine acts as if both
 were supplied.
+
+=head2 flush_scheduled_tasks( $ctrl, $fh, $queue, $sched )
+
+Flushes all scheduled tasks to the waiting queue regardless of whether the scheduled
+times have been reached. Prints a message reporting the number of flushed tasks to
+the C<$fh> file handle.
+
+=head2 delete_unprocessed_tasks( $ctrl, $fh, $queue, $sched, @args )
+
+Deletes tasks which are not yet being processed. Tasks that are currently being
+processed are not deleted. The tasks to be deleted are determined by the supplied
+arguments. Supported arguments are:
+
+=over 4
+
+=item waiting
+
+If this argument is supplied, waiting and/or deferred tasks are deleted.
+
+=item scheduled
+
+If this argument is supplied, scheduled tasks are deleted.
+
+=back
+
+If neither C<waiting> or C<scheduled> are supplied, all non-processed tasks are
+deleted.
 
 =head1 DIAGNOSTICS
 

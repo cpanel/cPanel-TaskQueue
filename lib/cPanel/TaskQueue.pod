@@ -5,7 +5,7 @@ cPanel::TaskQueue - FIFO queue of tasks to perform
 
 =head1 VERSION
 
-This document describes cPanel::TaskQueue version 0.606
+This document describes cPanel::TaskQueue version 0.700
 
 =head1 SYNOPSIS
 
@@ -176,6 +176,16 @@ This method does not return until all tasks currently being processed in the
 background are completed. It is most useful to call as part of shutdown of the
 program that processes the queue. While waiting for processing to complete,
 this method does not start any new tasks out of the queue.
+
+=item $q->delete_all_unprocessed_tasks()
+
+This method deletes all tasks in the deferred or waiting state from the
+C<cPanel::TaskQueue>. It does nothing with the Tasks that are currently being
+processed.
+
+I<Warning>: This is probably not a very good idea. However, there may be a
+circumstance where we need to throw away everything that is in the queue and
+this method provides that ability.
 
 =back
 

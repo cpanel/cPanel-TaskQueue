@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Test the cPanel::TaskQueue module.
+# Test the cPanel::TaskQueue::Scheduler module.
 #
 # This tests the code for handling long-running processes. Since it is, by
 #  necessity, slower to execute than we probably want to run as a normal
@@ -9,41 +9,19 @@
 
 
 use strict;
+use warnings;
 use FindBin;
 use lib "$FindBin::Bin/mocks";
 use File::Path ();
 
 use Test::More tests => 18;
+use Test::Exception;
 use cPanel::TaskQueue::Scheduler;
 
 my $tmpdir = './tmp';
 my $statedir = "$tmpdir/statedir";
 
-{
-    package MockQueue;
-
-    sub new {
-        return bless [];
-    }
-
-    sub queue_task {
-        my ($self, $task) = @_;
-
-        push @{$self}, $task;
-        return 1;
-    }
-
-    sub clear_tasks {
-        my ($self) = @_;
-        @{$self} = ();
-        return;
-    }
-
-    sub get_tasks {
-        my ($self) = @_;
-        return @{$self};
-    }
-}
+use MockQueue;
 
 SKIP:
 {
@@ -101,11 +79,8 @@ SKIP:
     my $sched = cPanel::TaskQueue::Scheduler->new( { name => 'tasks', state_dir => $statedir } );
     ok( $sched->schedule_task( 'noop 0', {at_time=>time} ), 'command scheduled for now.' );
 
-    eval { $sched->process_ready_tasks(); };
-    like( $@, qr/No valid queue/, 'do not process with missing queue' );
-
-    eval { $sched->process_ready_tasks( {} ); };
-    like( $@, qr/No valid queue/, 'do not process with non-queue' );
+    throws_ok { $sched->process_ready_tasks(); } qr/No valid queue/, 'do not process with missing queue';
+    throws_ok { $sched->process_ready_tasks( {} ); } qr/No valid queue/, 'do not process with non-queue';
 
     cleanup();
 }
@@ -113,4 +88,5 @@ SKIP:
 # Clean up after myself
 sub cleanup {
     File::Path::rmtree( $tmpdir ) if -d $tmpdir;
+    return;
 }

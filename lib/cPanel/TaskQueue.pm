@@ -651,6 +651,21 @@ my $taskqueue_uuid = 'TaskQueue';
         };
     }
 
+    sub delete_all_unprocessed_tasks {
+        my ($self) = @_;
+        my $guard = $self->{disk_state}->synch();
+
+        # Empty the deferral and waiting queues. Can't change processing list,
+        # those tasks are actually in progress.
+        my $count = @{ $self->{deferral_queue} };
+        $self->{deferral_queue} = [];
+        $count += @{ $self->{queue_waiting} };
+        $self->{queue_waiting} = [];
+        $guard->update_file();
+
+        return $count;
+    }
+
     # ---------------------------------------------------------------
     #  Private Methods.
 
@@ -847,7 +862,7 @@ __PACKAGE__->register_task_processor( 'noop', sub { } );
 
 __END__
 
-Copyright (c) 2010, cPanel, Inc. All rights reserved.
+Copyright (c) 2014, cPanel, Inc. All rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
