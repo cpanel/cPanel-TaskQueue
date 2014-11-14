@@ -554,6 +554,7 @@ my $taskqueue_uuid = 'TaskQueue';
             # Check for deferrals.
             if ( $processor->is_task_deferred( $task, $self->{defer_obj} ) ) {
                 unshift @{ $self->{deferral_queue} }, $task;
+                push @{ $self->{processing_list} }, $task;
                 $task = undef;
             }
         }

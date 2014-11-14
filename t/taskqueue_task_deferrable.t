@@ -119,7 +119,7 @@ sub clear_process_wait { unlink "$state_dir/flag"; }
 
     is( $queue->how_many_queued(),     0, "$label (2 step): queue count is correct" );
     is( $queue->how_many_deferred(),   3, "$label (2 step): deferred count is correct" );
-    is( $queue->how_many_in_process(), 1, "$label (2 step): process count is correct" );
+    is( $queue->how_many_in_process(), 4, "$label (2 step): process count is correct" );
 
     clear_process_wait();
     sleep( 1 ); # Clear the processing task
@@ -143,7 +143,7 @@ sub clear_process_wait { unlink "$state_dir/flag"; }
 
     is( $queue->how_many_queued(),     0, "$label (3 step): queue count is correct" );
     is( $queue->how_many_deferred(),   2, "$label (3 step): deferred count is correct" );
-    is( $queue->how_many_in_process(), 1, "$label (3 step): process count is correct" );
+    is( $queue->how_many_in_process(), 3, "$label (3 step): process count is correct" );
 
     clear_process_wait();
     File::Path::rmtree( $state_dir );
@@ -183,7 +183,7 @@ sub clear_process_wait { unlink "$state_dir/flag"; }
 
     is( $queue->how_many_queued(),     0, "$label (2 step): queue count is correct" );
     is( $queue->how_many_deferred(),   2, "$label (2 step): deferred count is correct" );
-    is( $queue->how_many_in_process(), 2, "$label (2 step): process count is correct" );
+    is( $queue->how_many_in_process(), 4, "$label (2 step): process count is correct" );
 
     clear_process_wait();
     File::Path::rmtree( $state_dir );
