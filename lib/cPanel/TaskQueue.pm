@@ -254,13 +254,10 @@ my $taskqueue_uuid = 'TaskQueue';
             $self->{disk_state} = cPanel::StateFile->new($state_args);
             1;
         } or do {
-            my $ex = $@ || 'Unrecognized exception.';
+            my $ex = $@ || 'Unreocognized exception.';
 
             # If not a loading error, rethrow.
-            if ( $ex !~ /Not a recognized|Invalid version|ParseError/ ) {
-                cPanel::StateFile->_throw($ex);
-            }
-
+            cPanel::StateFile->_throw($ex) unless $ex =~ /Not a recognized|Invalid version/;
             cPanel::StateFile->_warn($ex);
             cPanel::StateFile->_warn("Moving bad state file and retry.\n");
             cPanel::StateFile->_notify(
