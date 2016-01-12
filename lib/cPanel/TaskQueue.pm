@@ -161,6 +161,7 @@ my $taskqueue_uuid = 'TaskQueue';
         return;
     }
     sub _is_paused { return $_[0]->{paused} || 0; }
+
     sub is_paused {
         my ($self) = @_;
         $self->{disk_state}->synch();
@@ -254,10 +255,12 @@ my $taskqueue_uuid = 'TaskQueue';
             $self->{disk_state} = cPanel::StateFile->new($state_args);
             1;
         } or do {
-            my $ex = $@ || 'Unreocognized exception.';
+            my $ex = $@ || 'Unrecognized exception.';
 
             # If not a loading error, rethrow.
-            cPanel::StateFile->_throw($ex) unless $ex =~ /Not a recognized|Invalid version/;
+            if ( $ex !~ /Not a recognized|Invalid version|ParseError/ ) {
+                cPanel::StateFile->_throw($ex);
+            }
             cPanel::StateFile->_warn($ex);
             cPanel::StateFile->_warn("Moving bad state file and retry.\n");
             cPanel::StateFile->_notify(
@@ -327,7 +330,7 @@ my $taskqueue_uuid = 'TaskQueue';
         local $/;
         my ( $magic, $version, $meta ) = $self->_serializer()->load($fh);
 
-        $self->throw('Not a recognized TaskQueue state file.')   unless defined $magic   and $magic   eq $FILETYPE;
+        $self->throw('Not a recognized TaskQueue state file.')   unless defined $magic   and $magic eq $FILETYPE;
         $self->throw('Invalid version of TaskQueue state file.') unless defined $version and $version eq $CACHE_VERSION;
 
         # Next id should continue increasing.
@@ -339,7 +342,7 @@ my $taskqueue_uuid = 'TaskQueue';
         $self->{max_task_timeout}      = $meta->{max_task_to}  if $meta->{max_task_to} > 0;
         $self->{max_in_process}        = $meta->{max_running}  if $meta->{max_running} > 0;
         $self->{default_child_timeout} = $meta->{def_child_to} if $meta->{def_child_to} > 0;
-        $self->{paused}    = (exists $meta->{paused} && $meta->{paused}) ? 1 : 0;
+        $self->{paused} = ( exists $meta->{paused} && $meta->{paused} ) ? 1 : 0;
         $self->{defer_obj} = exists $meta->{defer_obj} ? $meta->{defer_obj} : undef;
 
         # Clean queues that have been read from disk.
@@ -598,7 +601,7 @@ my $taskqueue_uuid = 'TaskQueue';
 
             # remove finished item from the list.
             $self->{processing_list} = [ grep { $_->uuid() ne $uuid } @{ $self->{processing_list} } ];
-            $self->_remove_task_from_deferral_object( $task );
+            $self->_remove_task_from_deferral_object($task);
         }
 
         # Don't lose any exceptions.
@@ -761,8 +764,9 @@ my $taskqueue_uuid = 'TaskQueue';
         $self->_remove_completed_tasks_from_list();
 
         # No changes, we can leave
-        return if @{ $self->{processing_list} } == $num_processing
-                && @{ $self->{deferral_queue} } == $num_deferred;
+        return
+          if @{ $self->{processing_list} } == $num_processing
+          && @{ $self->{deferral_queue} } == $num_deferred;
 
         # Was not locked, so we need to lock and remove completed tasks again.
         if ( !$guard ) {
