@@ -47,7 +47,7 @@ my $locker = cPanel::StateFile::FileLocker->new({logger => $logger, max_age=>120
         my $diff = time - $start;
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
-        like( $msgs[1], qr/warn: Inconsistent lock/, 'handles lock with my PID but other progname.' );
+        like( $msgs[0], qr/warn: Inconsistent lock/, 'handles lock with my PID but other progname.' );
         is_within( $diff, 0, 2, 'did not wait for inconsistent lock.' );
 
         $locker->file_unlock( $lock );
