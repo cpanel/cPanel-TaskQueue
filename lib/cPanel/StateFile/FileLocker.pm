@@ -75,9 +75,6 @@ sub file_lock {
             return $lockfile;
         }
 
-        # Unable to create the lockfile.
-        $self->_info('Unable to create the lockfile, waiting');
-
         while ( $deadline > time ) {
             my ( $pid, $name, $max_time ) = $self->_read_lock_file($lockfile);
             unless ($pid) {
