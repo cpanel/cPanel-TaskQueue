@@ -3,11 +3,6 @@
 
 cPanel::TaskQueue::Ctrl - A text-based interface for controlling a TaskQueue
 
-=head1 VERSION
-
-This document describes cPanel::TaskQueue::Ctrl version 0.700
-
-
 =head1 SYNOPSIS
 
     use cPanel::TaskQueue::Ctrl;

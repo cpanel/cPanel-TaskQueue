@@ -3,10 +3,6 @@
 
 cPanel::TaskQueue - FIFO queue of tasks to perform
 
-=head1 VERSION
-
-This document describes cPanel::TaskQueue version 0.700
-
 =head1 SYNOPSIS
 
     use cPanel::TaskQueue ();
