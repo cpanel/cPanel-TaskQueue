@@ -1,10 +1,5 @@
 package cPanel::TQSerializer::YAML;
 
-# cpanel - cPanel/TQSerializer/YAML.pm            Copyright(c) 2014 cPanel, Inc.
-#                                                           All rights Reserved.
-# copyright@cpanel.net                                         http://cpanel.net
-# This code is subject to the cPanel license. Unauthorized copying is prohibited
-
 use YAML::Syck ();
 
 # with no bless flags
@@ -32,3 +27,9 @@ sub filename {
 
 1;
 
+__END__
+
+Copyright (c) 2014, cPanel, Inc. All rights reserved.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
