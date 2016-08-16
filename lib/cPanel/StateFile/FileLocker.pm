@@ -14,10 +14,10 @@ sub new {
         max_wait      => 300,    # five minutes
         max_age       => 300,    # five minutes
         flock_timeout => 60,
-        sleep_secs    => 1,
+        sleep_secs    => 0.1,
         %{$args_hr},
     );
-    $args{sleep_secs} = 1 if $args{sleep_secs} < 1;
+    $args{sleep_secs} = 0.05 if $args{sleep_secs} < 0.05;
 
     return bless \%args, $class;
 }
@@ -55,7 +55,7 @@ sub file_lock {
 
                 # couldn't read the file. If it doesn't exist, try to create.
                 next ATTEMPT unless -e $lockfile;
-                sleep $self->{sleep_secs};
+                select( undef, undef, undef, $self->{sleep_secs} );
                 next;
             }
             if ( time > $max_time ) {
@@ -84,7 +84,7 @@ sub file_lock {
                 next ATTEMPT;
             }
 
-            sleep $self->{sleep_secs};
+            select( undef, undef, undef, $self->{sleep_secs} );
         }
     }
 
@@ -176,7 +176,7 @@ sub _read_lock_file {
 
             close $fh;
             unless ($pid) {    # retry, we got between open and lock (probably).
-                sleep $self->{sleep_secs};
+                select( undef, undef, undef, $self->{sleep_secs} );
                 next;
             }
 
@@ -189,7 +189,7 @@ sub _read_lock_file {
         return unless -e $lockfile;    # file vanished, no longer locked.
 
         $self->_throw("Cannot open lock file '$lockfile' for reading.") unless -r _;
-        sleep $self->{sleep_secs};
+        select( undef, undef, undef, $self->{sleep_secs} );
     }
 
     my $lock_age = time - ( stat($lockfile) )[9];
