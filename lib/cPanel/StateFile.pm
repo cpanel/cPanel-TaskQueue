@@ -204,7 +204,7 @@ sub import {
         sub call_unlocked {
             my ( $self, $code ) = @_;
             my $state_file = $self->{state_file};
-            $state_file->throw('Cannot nest call_unlocked calls.') unless defined $self->{lock_file};
+            $state_file->throw('Cannot nest call_unlocked calls.')  unless defined $self->{lock_file};
             $state_file->throw('Missing coderef to call_unlocked.') unless 'CODE' eq ref $code;
 
             # unlock for the duration of the code execution
@@ -316,9 +316,13 @@ sub import {
         $dirname =~ s{/\./}{/}g;           # resolve self references
         $dirname =~ s{/\.$}{};
         if ( !-d $dirname ) {
-            File::Path::mkpath($dirname)
+            File::Path::mkpath( $dirname, 0, 0600 )
               or $self->throw("Unable to create Cache directory ('$dirname').");
         }
+        else {
+            chmod( 0600, $dirname ) if ( ( stat(_) )[2] & 0777 ) != 0600;
+        }
+
         $self->{file_name} = "$dirname/$file";
 
         $self->{data_object}   = $data_obj;
