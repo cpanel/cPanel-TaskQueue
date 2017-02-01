@@ -103,12 +103,13 @@ sub _first (&@) {                                      ## no critic(ProhibitSubr
 # Namespace string used when creating task ids.
 my $taskqueue_uuid = 'TaskQueue';
 
-{
+# Class-wide definition of the valid processors
+my %valid_processors;
+END { undef %valid_processors } # case CPANEL-10871 to avoid a SEGV during global destruction
 
-    # Class-wide definition of the valid processors
-    my %valid_processors;
-    my $FILETYPE      = 'TaskQueue';    # Identifier at the beginning of the state file
-    my $CACHE_VERSION = 3;              # Cache file version number.
+{
+   my $FILETYPE      = 'TaskQueue';    # Identifier at the beginning of the state file
+   my $CACHE_VERSION = 3;              # Cache file version number.
 
     # State File
     #
