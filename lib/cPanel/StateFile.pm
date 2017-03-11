@@ -375,7 +375,8 @@ sub import {
             $guard->update_file();
         }
         else {
-            $self->_resynch($guard);
+            my ( $mtime, $size ) = ( stat(_) )[ 9, 7 ];
+            $self->_resynch($guard, $mtime, $size);
         }
 
         # if not assigned anywhere, let the guard die.
@@ -386,10 +387,13 @@ sub import {
     }
 
     sub _resynch {
-        my ( $self, $guard ) = @_;
+        my ( $self, $guard, $mtime, $size ) = @_;
 
-        my ( $mtime, $size ) = ( stat( $self->{file_name} ) )[ 9, 7 ];
-        if ( $self->{file_mtime} < $mtime || $self->{file_size} != $size ) {
+        if ( !$mtime || !$size ) {
+            ( $mtime, $size ) = ( stat( $self->{file_name} ) )[ 9, 7 ];
+        }
+        # CPANEL-11795: Timewarp safety.  If time moves backwards we can loop forever
+        if ( $self->{file_mtime} < $mtime || $self->{file_size} != $size || $self->{file_mtime} > time() ) {
 
             # File is newer or a different size
             $guard ||= cPanel::StateFile::Guard->new( { state => $self } );
