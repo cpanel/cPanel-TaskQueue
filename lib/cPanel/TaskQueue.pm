@@ -358,32 +358,75 @@ my $taskqueue_uuid = 'TaskQueue';
         return $self->_serializer()->save( $fh, $FILETYPE, $CACHE_VERSION, $meta );
     }
 
+    sub queue_tasks {
+        my ( $self, @commands ) = @_;
+
+        # Let's throw right away before
+        # we have a lock in case something is wrong
+        foreach my $command (@commands) {
+            $self->throw('Cannot queue an empty command.') unless defined $command;
+            if ( !eval { $command->isa('cPanel::TaskQueue::Task') } ) {
+
+                # must have non-space characters to be a command.
+                $self->throw('Cannot queue an empty command.') unless $command =~ /\S/;
+            }
+        }
+
+        # Lock the queue here, because we begin looking what's currently in the queue
+        #  and don't want it to change under us.
+        my $guard = $self->{disk_state}->synch();
+
+        my ( @uuids, @invalid_tasks );
+        foreach my $command (@commands) {
+            my $task;
+
+            if ( eval { $command->isa('cPanel::TaskQueue::Task') } ) {
+                if ( 0 == $command->retries_remaining() ) {
+                    $self->info('Task with 0 retries not queued.');
+                    next;
+                }
+                $task = $command->mutate( { timeout => $self->{default_child_timeout} } );
+            }
+            else {
+                $task = cPanel::TaskQueue::Task->new(
+                    {
+                        cmd     => $command,
+                        nsid    => $taskqueue_uuid,
+                        id      => $self->{next_id}++,
+                        timeout => $self->{default_child_timeout},
+                    }
+                );
+            }
+
+            my $proc = _get_task_processor($task);
+            if ( !$proc || !$proc->is_valid_args($task) ) {
+                push @invalid_tasks, $task;
+                next;
+            }
+
+            if ( $self->_add_task_to_waiting_queue($task) ) {
+                push @uuids, $task->uuid();
+            } else {
+                push @uuids, undef; # failed task
+            }
+        }
+
+        # Changes to the queue are complete, save to disk.
+        $guard->update_file();
+
+        foreach my $task (@invalid_tasks) {
+            $self->_get_task_processor_for_task_or_throw($task);
+        }
+
+        return @uuids;
+    }
+
     sub queue_task {
         my ( $self, $command ) = @_;
 
-        $self->throw('Cannot queue an empty command.') unless defined $command;
+        my @uuids = $self->queue_tasks($command);
 
-        if ( eval { $command->isa('cPanel::TaskQueue::Task') } ) {
-            if ( 0 == $command->retries_remaining() ) {
-                $self->info('Task with 0 retries not queued.');
-                return;
-            }
-            my $task = $command->mutate( { timeout => $self->{default_child_timeout} } );
-            return $self->_queue_the_task($task);
-        }
-
-        # must have non-space characters to be a command.
-        $self->throw('Cannot queue an empty command.') unless $command =~ /\S/;
-
-        my $task = cPanel::TaskQueue::Task->new(
-            {
-                cmd     => $command,
-                nsid    => $taskqueue_uuid,
-                id      => $self->{next_id}++,
-                timeout => $self->{default_child_timeout},
-            }
-        );
-        return $self->_queue_the_task($task);
+        return @uuids ? $uuids[0] : ();
     }
 
     sub unqueue_task {
@@ -673,12 +716,8 @@ my $taskqueue_uuid = 'TaskQueue';
         return;
     }
 
-    # Perform all of the steps needed to put a task in the queue.
-    # Only queues legal commands, that are not duplicates.
-    # If successful, returns the new queue id.
-    sub _queue_the_task {
-        my ( $self, $task ) = @_;
-
+    sub _get_task_processor_for_task_or_throw {
+        my($self, $task) = @_;
         # Validate the incoming task.
         # It must be a command we recognize, have valid parameters, and not be a duplicate.
         my $proc = _get_task_processor($task);
@@ -688,10 +727,30 @@ my $taskqueue_uuid = 'TaskQueue';
         unless ( $proc->is_valid_args($task) ) {
             $self->throw( q{Requested command [} . $task->full_command() . q{] has invalid arguments.} );
         }
+        return $proc;
+    }
+
+    # Perform all of the steps needed to put a task in the queue.
+    # Only queues legal commands, that are not duplicates.
+    # If successful, returns the new queue id.
+    sub _queue_the_task {
+        my ( $self, $task ) = @_;
+
+        $self->_get_task_processor_for_task_or_throw($task);
 
         # Lock the queue here, because we begin looking what's currently in the queue
         #  and don't want it to change under us.
         my $guard = $self->{disk_state}->synch();
+
+        $self->_add_task_to_waiting_queue($task) or return;
+        # Changes to the queue are complete, save to disk.
+        $guard->update_file();
+
+        return $task->uuid();
+    }
+
+    sub _add_task_to_waiting_queue {
+        my ( $self, $task ) = @_;
 
         # Check overrides first and then duplicate. This seems backward, but
         # actually is not. See the tests labelled 'override, not dupe' in
@@ -705,10 +764,7 @@ my $taskqueue_uuid = 'TaskQueue';
 
         push @{ $self->{queue_waiting} }, $task;
 
-        # Changes to the queue are complete, save to disk.
-        $guard->update_file();
-
-        return $task->uuid();
+        return 1;
     }
 
     # Use either the timeout in the processor or the default timeout,
