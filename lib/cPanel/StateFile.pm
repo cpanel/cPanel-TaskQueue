@@ -5,7 +5,6 @@ use strict;
 #use warnings;
 
 use Fcntl        ();
-use File::Path   ();
 use Scalar::Util ();
 
 my $the_logger;
@@ -316,6 +315,7 @@ sub import {
         $dirname =~ s{/\./}{/}g;           # resolve self references
         $dirname =~ s{/\.$}{};
         if ( !-d $dirname ) {
+            require File::Path;
             File::Path::mkpath( $dirname, 0, 0600 )
               or $self->throw("Unable to create Cache directory ('$dirname').");
         }
