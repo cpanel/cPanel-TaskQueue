@@ -371,11 +371,35 @@ sub import {
         # need to set the lock asap to avoid any concurrency problem
         my $guard;
 
-        if ( !-e $self->{file_name} or -z _ ) {
+        if ( !-e $self->{file_name} ) {
             $guard = cPanel::StateFile::Guard->new( { state => $self } );
 
             # File doesn't exist or is empty, initialize it.
             $guard->update_file();
+        }
+        elsif ( -z _ ) {
+            # If the file is zero bytes this does not mean that
+            # it will be after we get a lock because another process
+            # could be writing to it while we did the stat
+            $guard = cPanel::StateFile::Guard->new( { state => $self } );
+
+            # After we got our lock we check again to see
+            # if its really zero and it wasn't just another process
+            # writing to it
+            if ( -z $self->{file_name} ) {
+                # Its really zero because we have a lock
+                # and we re-checked the file
+                $guard->update_file();
+            }
+            else {
+                # after the lock the other process
+                # had finished with it and its not
+                # zero anymore so we reload it now
+                # and continue on
+                my ( $mtime, $size ) = ( stat(_) )[ 9, 7 ];
+                $self->_resynch( $guard, $mtime, $size );
+
+            }
         }
         else {
             if ($caller_needs_a_guard) {
