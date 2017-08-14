@@ -366,21 +366,27 @@ sub import {
     sub synch {
         my ($self) = @_;
 
+        my $caller_needs_a_guard = defined wantarray;
+
         # need to set the lock asap to avoid any concurrency problem
-        my $guard = cPanel::StateFile::Guard->new( { state => $self } );
+        my $guard;
 
         if ( !-e $self->{file_name} or -z _ ) {
+            $guard = cPanel::StateFile::Guard->new( { state => $self } );
 
             # File doesn't exist or is empty, initialize it.
             $guard->update_file();
         }
         else {
+            if ($caller_needs_a_guard) {
+              $guard = cPanel::StateFile::Guard->new( { state => $self } );
+            }
             my ( $mtime, $size ) = ( stat(_) )[ 9, 7 ];
             $self->_resynch($guard, $mtime, $size);
         }
 
         # if not assigned anywhere, let the guard die.
-        return unless defined wantarray;
+        return if !$caller_needs_a_guard;
 
         # Otherwise return it.
         return $guard;
