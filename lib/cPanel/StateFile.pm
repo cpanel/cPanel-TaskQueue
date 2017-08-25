@@ -316,11 +316,11 @@ sub import {
         $dirname =~ s{/\.$}{};
         if ( !-d $dirname ) {
             require File::Path;
-            File::Path::mkpath( $dirname, 0, 0600 )
+            File::Path::mkpath( $dirname, 0, 0700 )
               or $self->throw("Unable to create Cache directory ('$dirname').");
         }
         else {
-            chmod( 0600, $dirname ) if ( ( stat(_) )[2] & 0777 ) != 0600;
+            chmod( 0700, $dirname ) if ( ( stat(_) )[2] & 0777 ) != 0700;
         }
 
         $self->{file_name} = "$dirname/$file";
