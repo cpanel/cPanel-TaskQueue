@@ -92,13 +92,13 @@ my $are_policies_set = 0;
 #
 # This method allows changing the policies for logging and locking.
 sub import {
-    my $class = shift;
-    die 'Not an even number of arguments to the $pkg module' if @_ % 2;
+    my ( $class, @args ) = @_;
+    die 'Not an even number of arguments to the $pkg module' if @args % 2;
     die 'Policies already set elsewhere' if $are_policies_set;
-    return 1 unless @_;    # Don't set the policies flag.
+    return 1 unless @args;    # Don't set the policies flag.
 
-    while (@_) {
-        my ( $policy, $object ) = splice( @_, 0, 2 );
+    while (@args) {
+        my ( $policy, $object ) = splice( @args, 0, 2 );
         next unless defined $object;
         if ( '-logger' eq $policy ) {
             unless ( ref $object ) {
@@ -316,11 +316,11 @@ sub import {
         $dirname =~ s{/\.$}{};
         if ( !-d $dirname ) {
             require File::Path;
-            File::Path::mkpath( $dirname, 0, 0600 )
+            File::Path::mkpath( $dirname, 0, 0700 )
               or $self->throw("Unable to create Cache directory ('$dirname').");
         }
         else {
-            chmod( 0600, $dirname ) if ( ( stat(_) )[2] & 0777 ) != 0600;
+            chmod( 0700, $dirname ) if ( ( stat(_) )[2] & 0777 ) != 0700;
         }
 
         $self->{file_name} = "$dirname/$file";
@@ -378,6 +378,7 @@ sub import {
             $guard->update_file();
         }
         elsif ( -z _ ) {
+
             # If the file is zero bytes this does not mean that
             # it will be after we get a lock because another process
             # could be writing to it while we did the stat
@@ -387,6 +388,7 @@ sub import {
             # if its really zero and it wasn't just another process
             # writing to it
             if ( -z $self->{file_name} ) {
+
                 # Its really zero because we have a lock
                 # and we re-checked the file
                 $guard->update_file();
@@ -403,10 +405,10 @@ sub import {
         }
         else {
             if ($caller_needs_a_guard) {
-              $guard = cPanel::StateFile::Guard->new( { state => $self } );
+                $guard = cPanel::StateFile::Guard->new( { state => $self } );
             }
             my ( $mtime, $size ) = ( stat(_) )[ 9, 7 ];
-            $self->_resynch($guard, $mtime, $size);
+            $self->_resynch( $guard, $mtime, $size );
         }
 
         # if not assigned anywhere, let the guard die.
@@ -422,6 +424,7 @@ sub import {
         if ( !$mtime || !$size ) {
             ( $mtime, $size ) = ( stat( $self->{file_name} ) )[ 9, 7 ];
         }
+
         # CPANEL-11795: Timewarp safety.  If time moves backwards we can loop forever
         if ( $self->{file_mtime} < $mtime || $self->{file_size} != $size || $self->{file_mtime} > time() ) {
 
