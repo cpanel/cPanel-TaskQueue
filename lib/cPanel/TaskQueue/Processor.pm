@@ -105,6 +105,7 @@ use strict;
 {
 
     package cPanel::TaskQueue::Processor::CodeRef;
+
     use base 'cPanel::TaskQueue::Processor';
 
     {
