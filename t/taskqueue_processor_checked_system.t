@@ -44,7 +44,7 @@ $logger->clear();
     open STDERR, '>', '/dev/null' or die "Unable to redirect STDERR: $!";
     is( $proc->checked_system( { logger => $logger, name => 'foobarxyzzy', cmd => 'foobarxyzzy' } ), -1, 'Program cannot run' );
     is( $logger->get_message, 'WARN:Failed to run foobarxyzzy', 'Warning detected.' );
-    open STDERR, '>', $olderr;
+    open STDERR, '>&=', $olderr;
 }
 
 $logger->clear();
