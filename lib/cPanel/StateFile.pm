@@ -227,24 +227,40 @@ sub import {
             my $state_file = $self->{state_file};
             $state_file->throw('Cannot open state file inside a call_unlocked call.') unless defined $self->{lock_file};
 
-            open my $fh, $mode, $state_file->{file_name}
+            sysopen( my $fh, $state_file->{file_name}, &Fcntl::O_CREAT | &Fcntl::O_RDWR, 0600 )
               or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
+
+            $self->_flock_after_open($fh);
+
+            $state_file->{file_handle} = $fh;
+        }
+
+        sub _flock_after_open {
+            my ($self, $fh) = @_;
+
+            my $timed_out;
+
             eval {
-                local $SIG{'ALRM'} = sub { die "flock 2 timeout\n"; };
-                my $orig_alarm = alarm $state_file->{flock_timeout};
-                flock $fh, 2;
+                local $SIG{'ALRM'} = sub {
+                    $timed_out = 1;
+                    die "flock LOCK_EX timeout\n";
+                };
+
+                my $orig_alarm = alarm $self->{state_file}{flock_timeout};
+                flock $fh, Fcntl::LOCK_EX();
                 alarm $orig_alarm;
                 1;
             } or do {
                 close($fh);
-                if ( $@ eq "flock 2 timeout\n" ) {
-                    $state_file->throw('Guard timed out trying to open state file.');
+
+                if ( $timed_out ) {
+                    $self->{state_file}->throw("Guard timed out trying to lock state file “$self->{state_file}{flock_timeout}”.");
                 }
-                else {
-                    $state_file->throw($@);
-                }
+
+                $self->{state_file}->throw($@);
             };
-            $state_file->{file_handle} = $fh;
+
+            return;
         }
 
         sub update_file {
@@ -253,26 +269,27 @@ sub import {
             $state_file->throw('Cannot update_file inside a call_unlocked call.') unless defined $self->{lock_file};
 
             if ( !$state_file->{file_handle} ) {
-                if ( -e $state_file->{file_name} ) {
-                    $self->_open('+<');
-                }
-                else {
-                    sysopen( my $fh, $state_file->{file_name}, &Fcntl::O_CREAT | &Fcntl::O_EXCL | &Fcntl::O_RDWR )
-                      or $state_file->throw("Cannot create state file '$state_file->{file_name}': $!");
-                    $state_file->{file_handle} = $fh;
-                }
+                $self->_open('+<');
             }
-            seek( $state_file->{file_handle}, 0, 0 );
-            truncate( $state_file->{file_handle}, 0 )
-              or $state_file->throw("Unable to truncate the state file: $!");
 
-            $state_file->{data_object}->save_to_cache( $state_file->{file_handle} );
-            $state_file->{file_mtime} = ( stat( $state_file->{file_handle} ) )[9];
+            #Set UNLINK in case we die().
+            require File::Temp;
+            my ($fh, $path) = File::Temp::tempfile( DIR => $self->{_file_dir}, UNLINK => 1 );
+
+            $self->_flock_after_open($fh);
+
+            $state_file->{data_object}->save_to_cache( $fh );
+
+            rename $path => $state_file->{file_name} or $state_file->throw("Failed to rename($path => $state_file->{file_name}: $!");
+
+            @{$state_file}{'file_handle', 'file_size', 'file_mtime'} = (
+                $fh,
+                ( stat $fh )[7, 9],
+            );
 
             # Make certain we are at end of file.
-            seek( $state_file->{file_handle}, 0, 2 )
-              or $state_file->throw("Unable to go to end of file: $!");
-            $state_file->{file_size} = tell( $state_file->{file_handle} );
+            seek( $fh, 0, Fcntl::SEEK_END() ) or $state_file->throw("Unable to go to end of file “$state_file->{file_name}”: $!");
+
             return;
         }
 
