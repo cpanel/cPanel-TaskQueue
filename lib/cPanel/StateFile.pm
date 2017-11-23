@@ -223,7 +223,7 @@ sub import {
         }
 
         sub _open {
-            my ( $self, $mode ) = @_;
+            my ( $self ) = @_;
             my $state_file = $self->{state_file};
             $state_file->throw('Cannot open state file inside a call_unlocked call.') unless defined $self->{lock_file};
 
@@ -269,7 +269,7 @@ sub import {
             $state_file->throw('Cannot update_file inside a call_unlocked call.') unless defined $self->{lock_file};
 
             if ( !$state_file->{file_handle} ) {
-                $self->_open('+<');
+                $self->_open();
             }
 
             #Set UNLINK in case we die().
@@ -447,7 +447,7 @@ sub import {
 
             # File is newer or a different size
             $guard ||= cPanel::StateFile::Guard->new( { state => $self } );
-            $guard->_open('+<');
+            $guard->_open();
             $self->{data_object}->load_from_cache( $self->{file_handle} );
             ( $self->{file_mtime}, $self->{file_size} ) = ( stat( $self->{file_handle} ) )[ 9, 7 ];
         }
