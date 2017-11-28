@@ -238,7 +238,6 @@ sub import {
                 my $fh_inode = (stat $fh)[1];
                 my $path_inode = (stat $state_file->{file_name})[1];
                 if ($fh_inode != $path_inode) {
-                    #print STDERR "redoing ($fh_inode != $path_inode)\n";
                     redo OPEN_FLOCK;
                 }
 
@@ -287,6 +286,9 @@ sub import {
             require File::Temp;
             my ($fh, $path) = File::Temp::tempfile( DIR => $self->{_file_dir}, UNLINK => 1 );
 
+            #We lock the temp file so that it’s “pre-locked”
+            #when we rename() it into place below. That way the
+            #production path stays consistently locked.
             $self->_flock_after_open($fh);
 
             $state_file->{data_object}->save_to_cache( $fh );
