@@ -184,10 +184,7 @@ sub import {
 
                 # TODO probably need to check for failure, but then what do I do?
                 eval {
-                    local $SIG{'ALRM'} = sub { die "flock 8 timeout\n"; };
-                    my $orig_alarm = alarm $state_file->{flock_timeout};
                     flock $state_file->{file_handle}, 8;
-                    alarm $orig_alarm;
                 };
                 close $state_file->{file_handle};
                 $state_file->{file_handle} = undef;
@@ -222,17 +219,31 @@ sub import {
             return;
         }
 
+        #Tested directly because this is critical logic.
         sub _open {
             my ( $self ) = @_;
             my $state_file = $self->{state_file};
             $state_file->throw('Cannot open state file inside a call_unlocked call.') unless defined $self->{lock_file};
 
-            sysopen( my $fh, $state_file->{file_name}, &Fcntl::O_CREAT | &Fcntl::O_RDWR, 0600 )
-              or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
+          OPEN_FLOCK: {
+                sysopen( my $fh, $state_file->{file_name}, Fcntl::O_CREAT() | Fcntl::O_RDWR(), 0600 )
+                or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
 
-            $self->_flock_after_open($fh);
+                $self->_flock_after_open($fh);
 
-            $state_file->{file_handle} = $fh;
+                #We might have blocked on the flock() long enough for
+                #another process to have rename()d over the file that
+                #we just locked. So we need to ensure that the file we
+                #have locked is the same file as $state_file.
+                my $fh_inode = (stat $fh)[1];
+                my $path_inode = (stat $state_file->{file_name})[1];
+                if ($fh_inode != $path_inode) {
+                    #print STDERR "redoing ($fh_inode != $path_inode)\n";
+                    redo OPEN_FLOCK;
+                }
+
+                $state_file->{file_handle} = $fh;
+            }
         }
 
         sub _flock_after_open {
@@ -281,6 +292,9 @@ sub import {
             $state_file->{data_object}->save_to_cache( $fh );
 
             rename $path => $state_file->{file_name} or $state_file->throw("Failed to rename($path => $state_file->{file_name}: $!");
+
+            flock $state_file->{file_handle}, Fcntl::LOCK_UN();
+            close $state_file->{file_handle};
 
             @{$state_file}{'file_handle', 'file_size', 'file_mtime'} = (
                 $fh,
