@@ -6,8 +6,8 @@ use strict;
 use warnings;
 use autodie;
 
-use Fcntl ();
-use File::Temp ();
+use Fcntl       ();
+use File::Temp  ();
 use File::Slurp ();
 use Time::HiRes ();
 
@@ -36,15 +36,17 @@ my $data_obj = bless( {}, 'MockDataObject' );
 
 sub _create_hack_guard {
     my $hack_state = bless {
-        data_object => $data_obj,
-        file_name => $file_path,
+        data_object   => $data_obj,
+        file_name     => $file_path,
         flock_timeout => 60,
-    }, 'cPanel::StateFile';
+      },
+      'cPanel::StateFile';
 
     return bless {
         state_file => $hack_state,
-        lock_file => 'this_does_not_really_exist',
-    }, 'cPanel::StateFile::Guard';
+        lock_file  => 'this_does_not_really_exist',
+      },
+      'cPanel::StateFile::Guard';
 }
 
 #----------------------------------------------------------------------
@@ -71,9 +73,9 @@ for my $iteration ( 1 .. 10 ) {
     my $hguard = _create_hack_guard();
     $hguard->_open();
 
-    my $fh_inode = (stat $hguard->{'state_file'}{'file_handle'})[1];
-    my $path_inode = (stat $hguard->{'state_file'}{'file_name'})[1];
-    if ($fh_inode != $path_inode) {
+    my $fh_inode   = ( stat $hguard->{'state_file'}{'file_handle'} )[1];
+    my $path_inode = ( stat $hguard->{'state_file'}{'file_name'} )[1];
+    if ( $fh_inode != $path_inode ) {
         die "_open() did flock() a file handle that isn’t the path!";
     }
 }
@@ -111,7 +113,7 @@ for my $iteration ( 1 .. 20 ) {
     Time::HiRes::sleep(0.01) while !-e "$dir/wrote-$iteration";
 
     my $start = time;
-    $check_content_cr->() while time < ($start + 1);
+    $check_content_cr->() while time < ( $start + 1 );
 
     kill 'KILL', $pid;
 
@@ -125,7 +127,7 @@ ok 1, 'Done';
 package MockDataObject;
 
 sub load_from_cache {
-    my ($self, $fh) = @_;
+    my ( $self, $fh ) = @_;
 
     sysread( $fh, $self->{'_content'}, 32768 );
 
@@ -133,7 +135,7 @@ sub load_from_cache {
 }
 
 sub save_to_cache {
-    my ($self, $fh) = @_;
+    my ( $self, $fh ) = @_;
 
     syswrite( $fh, "PID $$-$main::suffix" );
 

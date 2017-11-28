@@ -183,9 +183,7 @@ sub import {
             if ( $state_file->{file_handle} ) {
 
                 # TODO probably need to check for failure, but then what do I do?
-                eval {
-                    flock $state_file->{file_handle}, 8;
-                };
+                eval { flock $state_file->{file_handle}, 8; };
                 close $state_file->{file_handle};
                 $state_file->{file_handle} = undef;
 
@@ -221,13 +219,13 @@ sub import {
 
         #Tested directly because this is critical logic.
         sub _open {
-            my ( $self ) = @_;
+            my ($self) = @_;
             my $state_file = $self->{state_file};
             $state_file->throw('Cannot open state file inside a call_unlocked call.') unless defined $self->{lock_file};
 
           OPEN_FLOCK: {
                 sysopen( my $fh, $state_file->{file_name}, Fcntl::O_CREAT() | Fcntl::O_RDWR(), 0600 )
-                or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
+                  or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
 
                 $self->_flock_after_open($fh);
 
@@ -235,9 +233,9 @@ sub import {
                 #another process to have rename()d over the file that
                 #we just locked. So we need to ensure that the file we
                 #have locked is the same file as $state_file.
-                my $fh_inode = (stat $fh)[1];
-                my $path_inode = (stat $state_file->{file_name})[1];
-                if ($fh_inode != $path_inode) {
+                my $fh_inode   = ( stat $fh )[1];
+                my $path_inode = ( stat $state_file->{file_name} )[1];
+                if ( $fh_inode != $path_inode ) {
                     redo OPEN_FLOCK;
                 }
 
@@ -246,7 +244,7 @@ sub import {
         }
 
         sub _flock_after_open {
-            my ($self, $fh) = @_;
+            my ( $self, $fh ) = @_;
 
             my $timed_out;
 
@@ -263,7 +261,7 @@ sub import {
             } or do {
                 close($fh);
 
-                if ( $timed_out ) {
+                if ($timed_out) {
                     $self->{state_file}->throw("Guard timed out trying to lock state file “$self->{state_file}{flock_timeout}”.");
                 }
 
@@ -284,23 +282,23 @@ sub import {
 
             #Set UNLINK in case we die().
             require File::Temp;
-            my ($fh, $path) = File::Temp::tempfile( DIR => $self->{_file_dir}, UNLINK => 1 );
+            my ( $fh, $path ) = File::Temp::tempfile( DIR => $self->{_file_dir}, UNLINK => 1 );
 
             #We lock the temp file so that it’s “pre-locked”
             #when we rename() it into place below. That way the
             #production path stays consistently locked.
             $self->_flock_after_open($fh);
 
-            $state_file->{data_object}->save_to_cache( $fh );
+            $state_file->{data_object}->save_to_cache($fh);
 
             rename $path => $state_file->{file_name} or $state_file->throw("Failed to rename($path => $state_file->{file_name}: $!");
 
             flock $state_file->{file_handle}, Fcntl::LOCK_UN();
             close $state_file->{file_handle};
 
-            @{$state_file}{'file_handle', 'file_size', 'file_mtime'} = (
+            @{$state_file}{ 'file_handle', 'file_size', 'file_mtime' } = (
                 $fh,
-                ( stat $fh )[7, 9],
+                ( stat $fh )[ 7, 9 ],
             );
 
             # Make certain we are at end of file.
