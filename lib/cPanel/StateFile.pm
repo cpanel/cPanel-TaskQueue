@@ -175,6 +175,18 @@ sub import {
             return;
         }
 
+        sub _in_child {
+            my ($self) = @_;
+
+            # Ensure that the child process does not
+            # remove the lock as that is the job of
+            # the parent.
+            $self->{'lock_file'}   = undef;
+            $self->{'file_handle'} = undef;
+
+            return;
+        }
+
         sub _unlock {
             my $self       = shift;
             my $state_file = $self->{state_file};
