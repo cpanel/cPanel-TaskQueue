@@ -145,6 +145,16 @@ sub _info {
 # returns undef on success or "Timeout on flock\n" if it timed out.
 sub _flock_timeout {
     my ( $fh, $how, $when ) = @_;
+
+    # Try a non-blocking call first as
+    # it will avoid two alarm syscalls
+    # if possible.
+    # If the nonblocking call does not
+    # complete right away we fallback to
+    # the full expensive
+    # signal handler setup/alarm/flock/alarm call
+    return undef if flock $fh, $how | Fcntl::LOCK_NB();
+
     my $orig_alarm;
     eval {
         local $SIG{'ALRM'} = sub { die "Timeout on flock\n"; };

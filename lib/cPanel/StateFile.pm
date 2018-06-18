@@ -194,13 +194,23 @@ sub import {
 
             if ( $state_file->{file_handle} ) {
 
-                # TODO probably need to check for failure, but then what do I do?
-                eval {
-                    local $SIG{'ALRM'} = sub { die "flock 8 timeout\n"; };
-                    my $orig_alarm = alarm $state_file->{flock_timeout};
-                    flock $state_file->{file_handle}, 8;
-                    alarm $orig_alarm;
-                };
+                # Try a non-blocking call first as
+                # it will avoid two alarm syscalls
+                # if possible.
+                # If the nonblocking call does not
+                # complete right away we fallback to
+                # the full expensive
+                # signal handler setup/alarm/flock/alarm call
+                if ( !flock $state_file->{file_handle}, 8 | Fcntl::LOCK_NB() ) {
+
+                    # TODO probably need to check for failure, but then what do I do?
+                    eval {
+                        local $SIG{'ALRM'} = sub { die "flock 8 timeout\n"; };
+                        my $orig_alarm = alarm $state_file->{flock_timeout};
+                        flock $state_file->{file_handle}, 8;
+                        alarm $orig_alarm;
+                    };
+                }
                 close $state_file->{file_handle};
                 $state_file->{file_handle} = undef;
 
@@ -241,21 +251,32 @@ sub import {
 
             open my $fh, $mode, $state_file->{file_name}
               or $state_file->throw("Unable to open state file '$state_file->{file_name}': $!");
-            eval {
-                local $SIG{'ALRM'} = sub { die "flock 2 timeout\n"; };
-                my $orig_alarm = alarm $state_file->{flock_timeout};
-                flock $fh, 2;
-                alarm $orig_alarm;
-                1;
-            } or do {
-                close($fh);
-                if ( $@ eq "flock 2 timeout\n" ) {
-                    $state_file->throw('Guard timed out trying to open state file.');
-                }
-                else {
-                    $state_file->throw($@);
-                }
-            };
+
+            # Try a non-blocking call first as
+            # it will avoid two alarm syscalls
+            # if possible.
+            # If the nonblocking call does not
+            # complete right away we fallback to
+            # the full expensive
+            # signal handler setup/alarm/flock/alarm call
+            if ( !flock $fh, 2 | Fcntl::LOCK_NB() ) {
+
+                eval {
+                    local $SIG{'ALRM'} = sub { die "flock 2 timeout\n"; };
+                    my $orig_alarm = alarm $state_file->{flock_timeout};
+                    flock $fh, 2;
+                    alarm $orig_alarm;
+                    1;
+                } or do {
+                    close($fh);
+                    if ( $@ eq "flock 2 timeout\n" ) {
+                        $state_file->throw('Guard timed out trying to open state file.');
+                    }
+                    else {
+                        $state_file->throw($@);
+                    }
+                };
+            }
             $state_file->{file_handle} = $fh;
         }
 
