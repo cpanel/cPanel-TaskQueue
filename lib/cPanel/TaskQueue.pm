@@ -852,20 +852,21 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
 
         # Separate deferred tasks from non-deferred tasks.
         my @defer;
-        my @proc;
         foreach my $task ( @{ $self->{deferral_queue} } ) {
             if ( _get_task_processor($task)->is_task_deferred( $task, $self->{defer_obj} ) ) {
                 push @defer, $task;
             }
             else {
 
+                $self->_process_overrides($task);
+                next if $self->_is_duplicate_command($task);
+
                 # move 'no longer deferred' tasks in reverse order to processing list
-                unshift @proc, $task;
+                unshift @{ $self->{queue_waiting} }, $task;
             }
         }
 
         # update queues
-        $self->{queue_waiting} = [ @proc, @{ $self->{queue_waiting} } ] if @proc;
         $self->{deferral_queue} = \@defer;
         return;
     }
