@@ -91,6 +91,8 @@ directory containing the module must already be part of the Perl path.
 
 Returns a true value is successful and a false value otherwise.
 
+Also returns a true value when we have already previously included this plugin in your execution context.
+
 =item cPanel::TaskQueue::PluginManager::list_loaded_plugins()
 
 Returns a list of the names of the loaded plugins in no particular order.
