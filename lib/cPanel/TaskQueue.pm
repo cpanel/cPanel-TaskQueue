@@ -257,7 +257,7 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
                 [qw(max_task_timeout      max_timeout)],
                 [qw(max_in_process        max_running)],
                 [qw(default_child_timeout default_child_timeout)],
-              ) {
+            ) {
                 my ( $internal_name, $arg_name ) = @$settings;
                 if ( exists $args_ref->{$arg_name} && $self->{$internal_name} ne $args_ref->{$arg_name} ) {
                     $self->{$internal_name} = $args_ref->{$arg_name};
@@ -335,9 +335,9 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
             grep {
                 defined $_
                   and eval { $_->isa('cPanel::TaskQueue::Task') }
-              } map {
+            } map {
                 eval { cPanel::TaskQueue::Task->reconstitute($_) }
-              } @{$task_list}
+            } @{$task_list}
         ];
     }
 

@@ -11,7 +11,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>4;
+use Test::More tests => 4;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -23,14 +23,14 @@ use cPanel::StateFile::FileLocker ();
 my $tmpdir = './tmp';
 
 # Make sure we are clean to start with.
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);
 my $filename = "$tmpdir/fake.file";
 my $lockfile = "$filename.lock";
 
 {
-    File::Path::mkpath( $tmpdir ) or die "Unable to create tmpdir: $!";
+    File::Path::mkpath($tmpdir) or die "Unable to create tmpdir: $!";
     my $logger = cPanel::FakeLogger->new;
-    my $locker = cPanel::StateFile::FileLocker->new({logger => $logger, max_age=>120, max_wait=>120});
+    my $locker = cPanel::StateFile::FileLocker->new( { logger => $logger, max_age => 120, max_wait => 120 } );
 
     # Make sure we are clean to start with.
     unlink $lockfile;
@@ -40,7 +40,7 @@ my $lockfile = "$filename.lock";
     like( $@, qr/Missing/, 'Correct handling of unlock with no lockfile' );
     $logger->reset_msgs();
 
-    eval { $locker->file_unlock( $lockfile ) };
+    eval { $locker->file_unlock($lockfile) };
     ok( !$@, 'Correct handling of unlock with missing lockfile' );
     my @msgs = $logger->get_msgs();
     $logger->reset_msgs();
@@ -48,4 +48,4 @@ my $lockfile = "$filename.lock";
     like( $msgs[0], qr/warn: .*?lost!/, 'Abandoned: First message detected.' );
 }
 
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);

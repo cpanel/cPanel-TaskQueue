@@ -11,7 +11,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>4;
+use Test::More tests => 4;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -23,22 +23,22 @@ use cPanel::StateFile::FileLocker ();
 my $tmpdir = './tmp';
 
 # Make sure we are clean to start with.
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);
 my $filename = "$tmpdir/fake.file";
 my $lockfile = "$filename.lock";
 
 {
-    File::Path::mkpath( $tmpdir ) or die "Unable to create tmpdir: $!";
+    File::Path::mkpath($tmpdir) or die "Unable to create tmpdir: $!";
     my $logger = cPanel::FakeLogger->new;
-    my $locker = cPanel::StateFile::FileLocker->new({logger => $logger, max_age=>120, max_wait=>120});
+    my $locker = cPanel::StateFile::FileLocker->new( { logger => $logger, max_age => 120, max_wait => 120 } );
 
     # create abandoned lockfile
     {
         open( my $fh, '>', $lockfile ) or die "Cannot create lockfile.";
-        print $fh 65537, "\nFred\n", time+5, "\n";
-        close( $fh );
+        print $fh 65537, "\nFred\n", time + 5, "\n";
+        close($fh);
         my $start = time;
-        my $lock = eval { $locker->file_lock( $filename ); };
+        my $lock = eval { $locker->file_lock($filename); };
         ok( $lock, 'Lock returned successfully' );
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
@@ -47,7 +47,7 @@ my $lockfile = "$filename.lock";
 
         my $diff = time - $start;
         ok( $diff < 10, "Abandoned: Did not wait too long." );
-        $locker->file_unlock( $lock ) if $lock;
+        $locker->file_unlock($lock) if $lock;
     }
 }
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);

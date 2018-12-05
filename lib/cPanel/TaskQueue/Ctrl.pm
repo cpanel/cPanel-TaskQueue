@@ -33,12 +33,12 @@ my %commands = (
     and each will be queued in turn.',
     },
     pause => {
-        code => sub { $_[2]->pause_processing(); return; },
+        code     => sub { $_[2]->pause_processing(); return; },
         synopsis => 'pause',
         help     => '    Pause the processing of waiting tasks from the TaskQueue.',
     },
     resume => {
-        code => sub { $_[2]->resume_processing(); return; },
+        code     => sub { $_[2]->resume_processing(); return; },
         synopsis => 'resume',
         help     => '    Resume the processing of waiting tasks from the TaskQueue.',
     },

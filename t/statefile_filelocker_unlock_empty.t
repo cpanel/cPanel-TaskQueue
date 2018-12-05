@@ -11,7 +11,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>4;
+use Test::More tests => 4;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -23,19 +23,19 @@ use cPanel::StateFile::FileLocker ();
 my $tmpdir = './tmp';
 
 # Make sure we are clean to start with.
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);
 my $filename = "$tmpdir/fake.file";
 my $lockfile = "$filename.lock";
 
 {
-    File::Path::mkpath( $tmpdir ) or die "Unable to create tmpdir: $!";
+    File::Path::mkpath($tmpdir) or die "Unable to create tmpdir: $!";
     my $logger = cPanel::FakeLogger->new;
-    my $locker = cPanel::StateFile::FileLocker->new({logger => $logger, max_age=>120, max_wait=>120});
+    my $locker = cPanel::StateFile::FileLocker->new( { logger => $logger, max_age => 120, max_wait => 120 } );
 
     {
         open( my $fh, '>', $lockfile ) or die "Cannot create lockfile.";
-        close( $fh );
-        eval { $locker->file_unlock( $lockfile ) };
+        close($fh);
+        eval { $locker->file_unlock($lockfile) };
         ok( !$@, 'Empty lockfile unlocked' );
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
@@ -45,4 +45,4 @@ my $lockfile = "$filename.lock";
     }
 }
 
-File::Path::rmtree( $tmpdir );
+File::Path::rmtree($tmpdir);
