@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>5;
+use Test::More tests=>4;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -46,9 +46,8 @@ SKIP:
         ok( $lock, 'Lock returned successfully' );
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
-        is( scalar(@msgs), 2, 'Abandoned: two messages found' );
-        like( $msgs[0], qr/info: .*?Unable to create/, 'Abandoned: First message detected.' );
-        like( $msgs[1], qr/warn: .*?Removing abandoned/, 'Abandoned: abandoned message detected.' );
+        is( scalar(@msgs), 1, 'Abandoned: two messages found' );
+        like( $msgs[0], qr/warn: .*?Removing abandoned/, 'Abandoned: abandoned message detected.' );
 
         my $diff = time - $start;
         ok( $diff < 10, "Abandoned: Did not wait too long." );

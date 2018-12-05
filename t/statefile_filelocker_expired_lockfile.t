@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>4;
+use Test::More tests=>3;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -45,15 +45,8 @@ SKIP:
         my $lock = eval { $locker->file_lock( $filename ); };
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
-        is( scalar(@msgs), 2, 'Expired: two messages found' );
-        like( $msgs[0], qr/info: .*?Unable to create/, 'Expired: First message detected.' );
-        # Maybe create a child and use its PID to do this right???
-        #if ( $> ) {
-            #like( $msgs[1], qr/warn: .*?Removing abandoned/, 'Abandoned: abandoned message detected.' );
-        #}
-        #else {
-            like( $msgs[1], qr/info: .*?Stale lock/, 'Expired: Stale message detected.' );
-        #}
+        is( scalar(@msgs), 1, 'Expired: two messages found' );
+        like( $msgs[0], qr/info: .*?Stale lock/, 'Expired: Stale message detected.' );
 
         my $diff = time - $start;
         is_between( $diff, 1, 10, 'Expired: wait time.' );

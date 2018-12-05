@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/mocks";
 
 use POSIX qw(strftime);
 use File::Path ();
-use Test::More tests=>19;
+use Test::More tests=>15;
 
 use cPanel::FakeLogger;
 use cPanel::StateFile::FileLocker ();
@@ -43,9 +43,8 @@ SKIP:
         my $lock = $locker->file_lock( $filename );
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
-        is( scalar(@msgs), 2, 'Empty: two messages found' );
-        like( $msgs[0], qr/info: .*?Unable to create/, 'Empty: First message detected.' );
-        like( $msgs[1], qr/info: .*?Old, but empty/, 'Empty: Empty file message detected.' );
+        is( scalar(@msgs), 1, 'Empty: two messages found' );
+        like( $msgs[0], qr/info: .*?Old, but empty/, 'Empty: Empty file message detected.' );
 
         my $diff = time - $start;
         ok( $diff < 10, "Very old lockfile taken out quickly." );
@@ -67,9 +66,8 @@ SKIP:
         my $lock = $locker->file_lock( $filename );
         my @msgs = $logger->get_msgs();
         $logger->reset_msgs();
-        is( scalar(@msgs), 2, 'Medium: two messages found' );
-        like( $msgs[0], qr/info: .*?Unable to create/, 'Medium: First message detected.' );
-        like( $msgs[1], qr/info: .*?Old, but empty/, 'Medium: Empty file message detected.' );
+        is( scalar(@msgs), 1, 'Medium: two messages found' );
+        like( $msgs[0], qr/info: .*?Old, but empty/, 'Medium: Empty file message detected.' );
 
         my $diff = time - $start;
         is_between( $diff, 55, 70, 'Medium: expiration time is reasonable.' );
@@ -87,9 +85,7 @@ SKIP:
         my @msgs = $logger->get_msgs();
         pop @msgs; # Discard throw message that we have already checked.
         $logger->reset_msgs();
-        ok( scalar(@msgs) > 2, 'Medium: multiple messages found' );
-        like( $msgs[0], qr/info: .*?Unable to create/, 'New: First message detected.' );
-        like( $msgs[-1], qr/info: .*?Unable to create/, 'New: Last message detected.' );
+        ok( scalar @msgs == 0, 'Medium: no messages found' );
 
         is_between( $diff, 115, 125, 'New: Reasonable timeout.' );
     }
