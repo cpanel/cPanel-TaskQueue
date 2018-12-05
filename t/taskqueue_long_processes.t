@@ -4,8 +4,7 @@
 #
 # This tests the code for handling long-running processes. Since it is, by
 #  necessity, slower to execute than we probably want to run as a normal
-#  test. This code is disabled, unless it is run with the environment
-#  variable CPANEL_SLOW_TESTS set.
+#  test.
 
 
 use strict;
@@ -31,10 +30,7 @@ my $statedir = "$tmpdir/statedir";
     }
 }
 
-SKIP:
 {
-    skip 'Long running tests not enabled.', 34 unless $ENV{CPANEL_SLOW_TESTS};
-
     # In case the last test did not succeed.
     cleanup();
     File::Path::mkpath( $statedir );

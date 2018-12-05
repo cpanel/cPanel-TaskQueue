@@ -4,8 +4,7 @@
 #
 # This tests the code for tasks scheduled for some time in the future. Since these
 #  tasks are, by necessity, slower to execute than we probably don't want to run
-#  as a normal test. This code is disabled, unless it is run with the environment
-#  variable CPANEL_SLOW_TESTS set.
+#  as a normal test.
 
 use strict;
 use warnings;

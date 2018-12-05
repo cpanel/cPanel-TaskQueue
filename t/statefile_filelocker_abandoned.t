@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
 # This test is checking some timeout code with respect to locking, so it runs
-# for a long time (by necessity). This code is normally disabled, unless it is
-# run with the environment variable CPANEL_SLOW_TESTS set.
+# for a long time (by necessity).
 
 use strict;
 use warnings;
@@ -28,10 +27,7 @@ File::Path::rmtree( $tmpdir );
 my $filename = "$tmpdir/fake.file";
 my $lockfile = "$filename.lock";
 
-SKIP:
 {
-    skip 'Long running tests not enabled.', 5 unless $ENV{CPANEL_SLOW_TESTS};
-
     File::Path::mkpath( $tmpdir ) or die "Unable to create tmpdir: $!";
     my $logger = cPanel::FakeLogger->new;
     my $locker = cPanel::StateFile::FileLocker->new({logger => $logger, max_age=>120, max_wait=>120});

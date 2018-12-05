@@ -4,9 +4,7 @@
 #
 # This tests the code for handling long-running processes. Since it is, by
 #  necessity, slower to execute than we probably want to run as a normal
-#  test. This code is disabled, unless it is run with the environment
-#  variable CPANEL_SLOW_TESTS set.
-
+#  test.
 
 use strict;
 use warnings;
@@ -20,10 +18,7 @@ use cPanel::TaskQueue::Scheduler;
 
 use MockQueue;
 
-SKIP:
 {
-    skip 'Long running tests not enabled.', 15 unless $ENV{CPANEL_SLOW_TESTS};
-
     my $tmpdir = File::Temp->newdir();
     my $statedir = "$tmpdir/statedir";
 

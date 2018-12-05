@@ -4,8 +4,7 @@
 #
 # This tests the code for tasks scheduled for some time in the future. Since these
 #  tasks are, by necessity, slower to execute than we probably don't want to run
-#  as a normal test. This code is disabled, unless it is run with the environment
-#  variable CPANEL_SLOW_TESTS set.
+#  as a normal test.
 
 
 use strict;
@@ -64,10 +63,8 @@ isa_ok( $queue, 'cPanel::TaskQueue', 'Queue object built.' );
 # Set up initial retryable task
 ok( $sched->schedule_task( 'task', {delay_seconds=>1, attempts=>4} ), 'scheduled task' );
 is( $sched->peek_next_task()->retries_remaining(), 4, 'Retry count starts correctly.' );
-SKIP:
-{
-    skip 'Long running tests not enabled.', 12 unless $ENV{CPANEL_SLOW_TESTS};
 
+{
     my $wait;
     sleep $wait if $wait = $sched->seconds_until_next_task();
     is( $sched->process_ready_tasks( $queue ), 1, 'Task queued' );

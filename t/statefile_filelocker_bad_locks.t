@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
 # This test is checking some timeout code with respect to locking, so it runs
-# for a long time (by necessity). This code is normally disabled, unless it is
-# run with the environment variable CPANEL_SLOW_TESTS set.
+# for a long time (by necessity).
 
 use strict;
 use warnings;
