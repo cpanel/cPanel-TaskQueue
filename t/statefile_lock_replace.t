@@ -53,9 +53,12 @@ sub _create_hack_guard {
 
 local $SIG{'CHLD'} = 'IGNORE';
 
+my $subprocess_timeout = 60;    # 1 minute
+
 my $renamer_pid = fork or do {
-    alarm 30;
-    while (1) {
+    my $end = time + $subprocess_timeout;
+
+    while ( time < $end ) {
         open my $fh, '>>', $file_path;
         flock $fh, Fcntl::LOCK_EX();
 
@@ -65,6 +68,10 @@ my $renamer_pid = fork or do {
 
         rename "$file_path.tmp" => $file_path;
     }
+
+    print "# $$: Renamer process has outlived its usefulness. Exiting …$/";
+
+    exit;
 };
 
 for my $iteration ( 1 .. 10 ) {
@@ -78,9 +85,16 @@ for my $iteration ( 1 .. 10 ) {
     if ( $fh_inode != $path_inode ) {
         die "_open() did flock() a file handle that isn’t the path!";
     }
+
+    note "\t… done.";
 }
 
-kill 'KILL', $renamer_pid;
+if ( CORE::kill 'KILL', $renamer_pid ) {
+    note "Renamer process ($renamer_pid) sent SIGKILL";
+}
+else {
+    diag "kill() of renamer process ($renamer_pid): $! (timed out?)";
+}
 
 #----------------------------------------------------------------------
 
@@ -103,7 +117,7 @@ for my $iteration ( 1 .. 20 ) {
     };
 
     my $pid = fork or do {
-        alarm 30;
+        alarm $subprocess_timeout;
         my $hack_guard = _create_hack_guard();
         $hack_guard->update_file();
         do { open my $fh, '>', "$dir/wrote-$iteration" };
@@ -115,7 +129,9 @@ for my $iteration ( 1 .. 20 ) {
     my $start = time;
     $check_content_cr->() while time < ( $start + 1 );
 
-    kill 'KILL', $pid;
+    if ( !CORE::kill 'KILL', $pid ) {
+        diag "kill() of updater process ($pid): $! (timed out?)";
+    }
 
     $check_content_cr->();
 }
