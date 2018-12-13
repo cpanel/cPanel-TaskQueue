@@ -26,7 +26,7 @@ is_deeply( cPanel::TaskQueue::PluginManager::get_plugins_hash(), {}, 'No plugins
     is_deeply( $plugins, $expected, 'One module: Plugins and commands match' );
 }
 
-plugin_load_no_ok( 'cPanel::FakeTasks::B', 'Cannot reload plugin' );
+plugin_load_ok( 'cPanel::FakeTasks::B', 'Cannot reload plugin' );
 
 {
     ok( cPanel::TaskQueue::PluginManager::load_plugin_by_name('cPanel::FakeTasks::A'), 'Loaded second actual plugin' );
@@ -51,4 +51,18 @@ sub plugin_load_no_ok {
     open( STDERR, '>&', $olderr ) or die "Unable to restore STDERR: $!";
 
     ok( !$status, $name );
+}
+
+sub plugin_load_ok {
+    my ($module, $name) = @_;
+
+    # Capture STDERR so Logger doesn't go to screen.
+    open( my $olderr, '>&STDERR' ) or die "Can't dupe STDERR: $!";
+    close( STDERR ); open( STDERR, '>', '/dev/null' ) or die "Unable to redirect STDERR: $!";
+
+    my $status = cPanel::TaskQueue::PluginManager::load_plugin_by_name( $module );
+
+    open( STDERR, '>&', $olderr ) or die "Unable to restore STDERR: $!";
+
+    ok( $status, $name );
 }
