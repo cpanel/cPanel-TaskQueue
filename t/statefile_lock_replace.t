@@ -6,10 +6,10 @@ use strict;
 use warnings;
 use autodie;
 
-use Fcntl       ();
-use File::Temp  ();
-use File::Slurp ();
-use Time::HiRes ();
+use Fcntl         ();
+use File::Temp    ();
+use File::Slurper ();
+use Time::HiRes   ();
 
 use cPanel::StateFile ();
 
@@ -95,7 +95,7 @@ for my $iteration ( 1 .. 20 ) {
     my $expected_content = qr<\APID [0-9]+-$suffix\z>;
 
     my $check_content_cr = sub {
-        my $content = File::Slurp::read_file($file_path);
+        my $content = File::Slurper::read_binary($file_path);
 
         if ( $content !~ $expected_content ) {
             die "FAIL: content “$content” doesn’t match expected “$expected_content”";
