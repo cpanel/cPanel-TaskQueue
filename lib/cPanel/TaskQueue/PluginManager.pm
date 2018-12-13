@@ -48,7 +48,7 @@ sub load_plugin_by_name {
     my ($modname) = @_;
 
     # Don't try to reload.
-    return if exists $plugins_list{$modname};
+    return 1 if exists $plugins_list{$modname};
 
     eval "require $modname;";    ## no critic (ProhibitStringyEval)
     if ($@) {
