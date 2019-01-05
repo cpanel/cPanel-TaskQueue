@@ -89,6 +89,10 @@ sub _first (&@) {                                      ## no critic(ProhibitSubr
     return;
 }
 
+sub TO_JSON {
+    return { %{ $_[0] } };
+}
+
 # Namespace value used when creating unique task ids.
 my $tasksched_uuid = 'TaskQueue-Scheduler';
 

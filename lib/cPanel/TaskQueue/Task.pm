@@ -229,6 +229,10 @@ sub _verify_userdata_arg {
     return;
 }
 
+sub TO_JSON {
+    return { %{ $_[0] } };
+}
+
 1;
 
 __END__
