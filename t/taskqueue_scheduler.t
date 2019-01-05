@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/mocks";
 use File::Temp ();
 
-use Test::More tests => 93;
+use Test::More tests => 94;
 use Test::Exception;
 use cPanel::TaskQueue::Scheduler;
 use MockQueue;
@@ -134,6 +134,8 @@ while ( my $task = $sched->peek_next_task() ) {
 
 ok( $sched->schedule_task( 'noop 0', {} ), 'Scheduled with no time setting.' );
 ok( $sched->seconds_until_next_task() <= 0, 'Scheduled right now (or in the last second.' );
+
+is_deeply cPanel::TaskQueue::Scheduler::TO_JSON( {qw/a b c d/} ), { qw/a b c d/ }, "naive TO_JSON helper";
 
 {
     my $label = 'flush_all_tasks';
