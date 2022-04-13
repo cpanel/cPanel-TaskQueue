@@ -26,6 +26,7 @@ jobs:
         uses: perl-actions/install-with-cpanm@stable
         with:
           sudo: true
+          tests: false
           install: |
             Carp
             Cwd
@@ -79,6 +80,7 @@ jobs:
         uses: perl-actions/install-with-cpanm@stable
         with:
           sudo: false
+          tests: false
           install: |
             Carp
             Cwd
