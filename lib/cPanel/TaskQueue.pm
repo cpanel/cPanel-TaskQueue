@@ -317,6 +317,8 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
         $self->{max_task_timeout}      = $meta->{max_task_to}  if $meta->{max_task_to} > 0;
         $self->{max_in_process}        = $meta->{max_running}  if $meta->{max_running} > 0;
         $self->{default_child_timeout} = $meta->{def_child_to} if $meta->{def_child_to} > 0;
+        $self->{_bump_size}            = $meta->{_bump_size} // '';
+
         $self->{paused} = ( exists $meta->{paused} && $meta->{paused} ) ? 1 : 0;
         $self->{defer_obj} = exists $meta->{defer_obj} ? $meta->{defer_obj} : undef;
 
@@ -355,7 +357,12 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
             deferral_queue   => $self->{deferral_queue},
             paused           => ( $self->{paused} ? 1 : 0 ),
             defer_obj        => $self->{defer_obj},
+            _bump_size       => $self->{_bump_size} // '',
         };
+
+        $meta->{_bump_size} .= "x";
+        $meta->{_bump_size} = 'x' if length $meta->{_bump_size} > 1_024;
+
         return $self->_serializer()->save( $fh, $FILETYPE, $CACHE_VERSION, $meta );
     }
 
