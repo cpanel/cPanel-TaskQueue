@@ -20,8 +20,8 @@ sub load_all_plugins {
 sub load_plugins {
     my ( $root_dir, $namespace ) = @_;
 
-    die "No directory supplied for finding plugins.\n" unless defined $root_dir and length $root_dir;
-    die "Supplied directory '$root_dir' does not exist.\n" unless -d $root_dir;
+    die "No directory supplied for finding plugins.\n"                      unless defined $root_dir and length $root_dir;
+    die "Supplied directory '$root_dir' does not exist.\n"                  unless -d $root_dir;
     die "Supplied directory '$root_dir' not part of Perl's include path.\n" unless grep { $_ eq $root_dir } @INC;
 
     die "No namespace for plugins specified.\n" unless defined $namespace and length $namespace;

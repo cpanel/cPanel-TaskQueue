@@ -73,7 +73,7 @@ use strict;
     # Utility functions
     sub checked_system {
         my ( $self, $args ) = @_;
-        die "Argument must be a hashref." unless ref $args eq 'HASH';
+        die "Argument must be a hashref."         unless ref $args eq 'HASH';
         die "Missing required 'logger' argument." unless $args->{'logger'};
         $args->{'logger'}->throw("Missing required 'cmd' argument.")
           unless defined $args->{'cmd'} && length $args->{'cmd'};

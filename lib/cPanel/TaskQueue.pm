@@ -40,7 +40,7 @@ my $the_serializer;
 sub import {
     my $class = shift;
     die 'Not an even number of arguments to the ' . __PACKAGE__ . " module\n" if @_ % 2;
-    die "Policies already set elsewhere\n" if $are_policies_set;
+    die "Policies already set elsewhere\n"                                    if $are_policies_set;
     return 1 unless @_;    # Don't set the policies flag.
 
     while (@_) {
@@ -91,7 +91,7 @@ sub _get_serializer {
 }
 
 # Replacement for List::Util::first, so I don't need to bring in the whole module.
-sub _first (&@) {                                      ## no critic(ProhibitSubroutinePrototypes)
+sub _first (&@) {    ## no critic(ProhibitSubroutinePrototypes)
     my $pred = shift;
     local $_;
     foreach (@_) {
@@ -319,8 +319,8 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
         $self->{default_child_timeout} = $meta->{def_child_to} if $meta->{def_child_to} > 0;
         $self->{_bump_size}            = $meta->{_bump_size} // '';
 
-        $self->{paused} = ( exists $meta->{paused} && $meta->{paused} ) ? 1 : 0;
-        $self->{defer_obj} = exists $meta->{defer_obj} ? $meta->{defer_obj} : undef;
+        $self->{paused}    = ( exists $meta->{paused} && $meta->{paused} ) ? 1                  : 0;
+        $self->{defer_obj} = exists $meta->{defer_obj}                     ? $meta->{defer_obj} : undef;
 
         # Clean queues that have been read from disk.
         $self->{queue_waiting}   = _clean_task_list( $meta->{waiting_queue} );
@@ -629,7 +629,7 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
                     eval {
                         local $SIG{'ALRM'} = sub { die "time out reached\n"; };
                         $orig_alarm = alarm( $self->_timeout($processor) );
-                        $pid = $processor->process_task( $task->clone(), $self->{disk_state}->get_logger() );
+                        $pid        = $processor->process_task( $task->clone(), $self->{disk_state}->get_logger() );
                         alarm $orig_alarm;
                         1;
                     } or do {
@@ -639,6 +639,7 @@ END { undef %valid_processors }    # case CPANEL-10871 to avoid a SEGV during gl
                 }
             );
         }
+
         # Deal with a child process or remove from processing.
         if ($pid) {
             $task->set_pid($pid);
