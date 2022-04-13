@@ -1,33 +1,33 @@
-[![Build Status](https://travis-ci.org/CpanelInc/cPanel-TaskQueue.png?branch=master)](https://travis-ci.org/CpanelInc/cPanel-TaskQueue)
-
 # NAME
 
 cPanel::TaskQueue - FIFO queue of tasks to perform
 
 # SYNOPSIS
 
-    use cPanel::TaskQueue ();
+```perl
+use cPanel::TaskQueue ();
 
-    my $queue = cPanel::TaskQueue->new( { name => 'tasks', state_dir => "/home/$user/.cpanel/queue" } );
+my $queue = cPanel::TaskQueue->new( { name => 'tasks', state_dir => "/home/$user/.cpanel/queue" } );
 
-    $queue->queue_task( "init_quota" );
-    $queue->queue_task( "edit_quota fred 0" );
-    $queue->queue_tasks( "init_quota", "edit_quota fred 0" );
+$queue->queue_task( "init_quota" );
+$queue->queue_task( "edit_quota fred 0" );
+$queue->queue_tasks( "init_quota", "edit_quota fred 0" );
 
-    # Processing loop
-    while (1) {
-        # if work, process, else sleep
-        if ( $queue->has_work_to_do() ) {
-            eval { $queue->process_next_task() };
-            if ( $@ ) {
-                Carp::carp( $@ );
-            }
-        }
-        else {
-            # wait for work.
-            sleep 300;
+# Processing loop
+while (1) {
+    # if work, process, else sleep
+    if ( $queue->has_work_to_do() ) {
+        eval { $queue->process_next_task() };
+        if ( $@ ) {
+            Carp::carp( $@ );
         }
     }
+    else {
+        # wait for work.
+        sleep 300;
+    }
+}
+```
 
 # DESCRIPTION
 
@@ -392,7 +392,9 @@ us.
 To provide a different method of logging/reporting, supply an object to do the
 logging as follows when `use`ing the module.
 
-    use cPanel::TaskQueue ( '-logger' => $logger );
+```perl
+use cPanel::TaskQueue ( '-logger' => $logger );
+```
 
 The supplied object should supply (at least) 4 methods: `throw`, `warn`,
 `info`, and `notify`. When needed these methods will be called with the
@@ -404,7 +406,7 @@ multiple modules and expect it to work.
 In addition to setting a global logger, a new logger object can be supplied
 when creating a specific `TaskQueue` object.
 
-See [cPanel::TaskQueue::Cookbook](https://metacpan.org/pod/cPanel::TaskQueue::Cookbook) for examples.
+See [cPanel::TaskQueue::Cookbook](https://metacpan.org/pod/cPanel%3A%3ATaskQueue%3A%3ACookbook) for examples.
 
 # DIAGNOSTICS
 
